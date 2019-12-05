@@ -1,0 +1,4 @@
+<%= form_for Spree::Product.new, url: admin_products_csv_imports_path, method: :post, html: { multipart: true } do |f| %>
+  <input type="file" name="csv" />
+  <input type="submit" value="Import CSV">
+<% end %>
