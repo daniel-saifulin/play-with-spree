@@ -1,0 +1,11 @@
+<% content_for :page_title do %>
+  <%= 'Product Import result' %>
+<% end %>
+<span>Status: <%= @import.status %></span>
+
+<h4>Total count</h4>
+<div><%= @import.data['total_count'] || 0%></div>
+<h4>Success: </h4>
+<div><%= @import.data['success_count'] || 0 %></div>
+<h4>Failure: </h4>
+<div><%= @import.data['failure_count'] || 0 %></div>

@@ -6,6 +6,8 @@ module Products
       def initialize(attachment, import)
         @attachment = attachment
         @import     = import
+        @success    = 0
+        @failure    = 0
       end
 
       def call
@@ -21,11 +23,14 @@ module Products
               else
                 product_create(price, params)
               end
+              @success += 1
             end
           rescue ActiveRecord::StatementInvalid => e
-            # raise some error
+            @failure += 1
           end
         end
+
+        save_import_details
       end
 
       private
@@ -84,6 +89,17 @@ module Products
           created_at:           Time.zone.now,
           updated_at:           Time.zone.now
         }.compact
+      end
+
+      def save_import_details
+        data = {
+          total_count: File.new(attachment.file.path).readlines.size - 1,
+          success_count: @success,
+          failure_count: @failure
+        }
+
+        import.data = data
+        import.save!
       end
 
       def file_path
