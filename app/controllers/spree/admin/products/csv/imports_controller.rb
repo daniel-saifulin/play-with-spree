@@ -6,9 +6,12 @@ module Spree
 
           def create
             if attachment.save
-              import_service.call
+              ::ProductImportWorker.perform_async(
+                attachment_id: attachment.id,
+                import_id: import.id
+              )
 
-              flash[:notice] = "File successfull uploaded"
+              flash[:notice] = "File successfully uploaded. Please wait for import products"
               redirect_to admin_products_csv_import_path(import)
             else
               flash[:error] = "Error: #{ attachment.errors.full_messages.first }"
@@ -18,10 +21,6 @@ module Spree
           end
 
           private
-
-          def import_service
-            ::Products::Imports::Csv.new(attachment, import)
-          end
 
           def attachment
             @attachment ||= attachment_collection.new(file: permit_params[:csv])

@@ -12,7 +12,7 @@ module Products
         CSV.foreach(file_path, col_sep: (","), headers: true) do |row|
           row = row.to_h.compact.deep_symbolize_keys
           params = make_valid_params(row)
-          price  = row.to_h['price']
+          price  = row[:price]
 
           begin
             if (row.keys & required_fields).count >= required_fields.count

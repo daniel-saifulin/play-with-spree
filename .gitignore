@@ -18,7 +18,8 @@
 /yarn-error.log
 
 .byebug_history
-docker/db/data/*
+docker/redis/dump.rdb
+docker/db/*
 /.docker-sync
 docker-sync.yml
 docker-compose.override.yml
