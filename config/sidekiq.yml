@@ -1,0 +1,12 @@
+:verbose: false
+:pidfile: ./tmp/pids/sidekiq.pid
+:logfile: ./log/sidekiq.log
+:timeout: 30
+:concurrency: 10
+:queues:
+    - default
+    - mailers
+    - rake_tasks
+    - nlp
+    - mysite_default
+    - mysite_mailers

@@ -6,7 +6,6 @@ module Products
       def initialize(attachment, import)
         @attachment = attachment
         @import     = import
-        @params     = {}
       end
 
       def call
@@ -31,7 +30,7 @@ module Products
 
       private
 
-      attr_reader :attachment, :import, :params
+      attr_reader :attachment, :import
 
       def product_create(price, params)
         return unless price
