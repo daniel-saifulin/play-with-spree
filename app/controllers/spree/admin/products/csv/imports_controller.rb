@@ -3,7 +3,6 @@ module Spree
     module Products
       module Csv
         class ImportsController < Spree::Admin::BaseController
-
           def show
             @import = Import.find(params[:id])
           end

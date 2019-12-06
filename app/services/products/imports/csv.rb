@@ -11,7 +11,7 @@ module Products
       end
 
       def call
-        CSV.foreach(file_path, col_sep: (","), headers: true) do |row|
+        CSV.foreach(file_path, col_sep: (";"), headers: true) do |row|
           row = row.to_h.compact.deep_symbolize_keys
           params = make_valid_params(row)
           price  = row[:price]
@@ -24,6 +24,8 @@ module Products
                 product_create(price, params)
               end
               @success += 1
+            else
+              @failure += 1
             end
           rescue ActiveRecord::StatementInvalid => e
             @failure += 1
@@ -31,6 +33,8 @@ module Products
         end
 
         save_import_details
+      rescue => error
+        import.error!
       end
 
       private
@@ -42,9 +46,12 @@ module Products
 
         ActiveRecord::Base.connection.exec_query <<~SQL
           WITH products AS (
-            INSERT INTO spree_products (#{params.keys.join ', '})
-            VALUES (#{params.values.map{|e| spree_product_collection.connection.quote(e)}.join ', '})
-            RETURNING id as product_id
+              INSERT INTO spree_products (#{params.keys.join ', '})
+              SELECT #{params.values.map{|e| spree_product_collection.connection.quote(e)}.join ', '}
+              WHERE NOT EXISTS (
+                SELECT (#{params.keys.join ', '}) FROM spree_products WHERE name='#{params[:name]}'
+              )
+              RETURNING id AS product_id
           ), variants AS (
             INSERT INTO spree_variants (product_id, is_master , position, created_at, updated_at)
             SELECT product_id, 'true', 1, '#{Time.zone.now}', '#{Time.zone.now}'
@@ -52,7 +59,7 @@ module Products
             RETURNING id as variant_id
           ), prices AS (
             INSERT INTO spree_prices (variant_id, amount, currency)
-            SELECT variant_id, #{price}, 'USD'
+            SELECT variant_id, '#{price.gsub(",", ".")}', 'USD'
             FROM variants
           )
 
@@ -65,17 +72,19 @@ module Products
       def product_update(params)
         ActiveRecord::Base.connection.exec_query <<~SQL
           UPDATE spree_products SET
-            name = '#{params[:name]}', description = '#{params[:description]}', updated_at = '#{Time.zone.now}'
-          WHERE slug = '#{params[:slug]}'
+            name = '#{params[:name]}',
+            description = '#{params[:description]}',
+            updated_at = '#{Time.zone.now}'
+          WHERE slug = '#{params[:name]}'
         SQL
       end
 
       def products_slug
-        spree_product_collection.pluck(:slug)
+        @products_slug ||= spree_product_collection.pluck(:slug)
       end
 
       def required_fields
-        [:name, :slug, :price]
+        [:name, :price]
       end
 
       def make_valid_params(row)
@@ -86,6 +95,7 @@ module Products
           description:          row[:description].presence,
           slug:                 row[:slug].presence,
           shipping_category_id: shipping_category.id,
+          available_on:         row[:availability_date].presence,
           created_at:           Time.zone.now,
           updated_at:           Time.zone.now
         }.compact
