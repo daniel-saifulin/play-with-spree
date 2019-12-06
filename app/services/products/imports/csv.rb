@@ -95,7 +95,6 @@ module Products
           description:          row[:description].presence,
           slug:                 row[:slug].presence,
           shipping_category_id: shipping_category.id,
-          available_on:         row[:availability_date].presence,
           created_at:           Time.zone.now,
           updated_at:           Time.zone.now
         }.compact
