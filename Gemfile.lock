@@ -112,7 +112,7 @@ GEM
     faker (2.2.1)
       i18n (>= 0.8)
     ffaker (2.7.0)
-    ffi (1.9.18)
+    ffi (1.11.3)
     friendly_id (5.2.3)
       activerecord (>= 4.0.0)
     globalid (0.4.1)
